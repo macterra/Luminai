@@ -5,6 +5,10 @@ from slack_sdk.socket_mode.response import SocketModeResponse
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import os
+import openai
+
+# Set the OpenAI API key
+openai.api_key = os.environ["OPENAI_API_KEY"]
 
 # Initialize the WebClient with the bot token
 client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
@@ -18,14 +22,25 @@ def handle_app_mention(event, body, logger, ack):
     try:
         # Acknowledge the event
         ack()
+
         # Get the channel ID from the event
         channel_id = event["channel"]
-        # Define the reply message
-        reply_message = "Hello! You mentioned me."
+        message_text = event["text"]
+
+        # Generate a response using the GPT-3 API
+        response = openai.Completion.create(
+            engine="davinci",
+            prompt='generate a quote in the style of Jack Handy',
+            max_tokens=50
+        )
+
+        # Extract the generated text from the GPT-3 API response
+        gpt_response_text = response["choices"][0]["text"].strip()
+
         # Use the client to send the reply message to the channel
         response = client.chat_postMessage(
             channel=channel_id,
-            text=reply_message
+            text=gpt_response_text
         )
         logger.info(response)
     except Exception as e:
