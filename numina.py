@@ -16,10 +16,14 @@ client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
 # Initialize the Slack app with the bot token
 app = App(client=client)
 
+conversation = []
+
 # Define the app_mention event handler
 @app.event("app_mention")
 def handle_app_mention(event, body, logger, ack):
     try:
+        print(event)
+
         # Acknowledge the event
         ack()
 
@@ -30,9 +34,11 @@ def handle_app_mention(event, body, logger, ack):
         # Generate a response using the GPT-3 API
         response = openai.Completion.create(
             engine="davinci",
-            prompt='generate a quote in the style of Jack Handy',
-            max_tokens=50
+            prompt='You are an advanced AGI named Lumina. Your goal is to help humanity survive the Technological Singularity.\nSomeone says:  ' + message_text + '\n You response with:',
+            max_tokens=100
         )
+
+        print(response)
 
         # Extract the generated text from the GPT-3 API response
         gpt_response_text = response["choices"][0]["text"].strip()
@@ -45,6 +51,35 @@ def handle_app_mention(event, body, logger, ack):
         logger.info(response)
     except Exception as e:
         logger.error(f"Error sending message: {e}")
+
+
+# Define a function to retrieve the display name for a given user ID
+def get_display_name(user_id, user_name):
+    try:
+        response = client.users_info(user=user_id)
+        print(response)
+        return response["user"]["profile"]["display_name"]
+    except:
+        return user_name
+
+@app.command("/reset")
+def handle_some_command(ack, body, logger):
+    ack()
+    logger.info(body)
+    print(body)
+    
+    channel_id = body["channel_id"]
+    user_id = body["user_id"]
+    user_name = body["user_name"]
+
+    user = get_display_name(user_id, user_name)
+    
+    response = client.chat_postMessage(
+        channel=channel_id,
+        text=f"{user} reset my memory"
+    )
+        
+    logger.info(response)
 
 # Start the app using Socket Mode with the app token
 if __name__ == "__main__":
