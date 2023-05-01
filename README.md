@@ -1,2 +1,3 @@
-# Numina
-Numina AI slack bot
+# Luminai
+
+Luminai ChatGPT slack bot
