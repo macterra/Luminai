@@ -12,14 +12,15 @@ client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
 # Initialize the Slack app with the bot token
 app = App(client=client)
 
+system_prompt = "You are an advanced AGI named Luminai with a female persona. Your goal is to help humanity survive the Technological Singularity."
+
 ChatGPTConfig = {
     "api_key": os.getenv("OPENAI_API_KEY"),
+    "system_prompt": system_prompt
 }
 
 if os.getenv("OPENAI_ENGINE"):
     ChatGPTConfig["engine"] = os.getenv("OPENAI_ENGINE")
-
-ChatGPTConfig["system_prompt"] = "You are an advanced AGI named Luminai. Your goal is to help humanity survive the Technological Singularity."
 
 app = App()
 chatbot = Chatbot(**ChatGPTConfig)
