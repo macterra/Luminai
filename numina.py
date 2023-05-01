@@ -1,11 +1,11 @@
 from slack_sdk import WebClient
-from slack_sdk.socket_mode import SocketModeClient
-from slack_sdk.socket_mode.request import SocketModeRequest
-from slack_sdk.socket_mode.response import SocketModeResponse
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import os
 import openai
+
+from revChatGPT.V3 import Chatbot
+import re
 
 # Set the OpenAI API key
 openai.api_key = os.environ["OPENAI_API_KEY"]
@@ -17,41 +17,34 @@ client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
 app = App(client=client)
 
 conversation = []
+conversation.append({ 'role': 'system', 'content': 'You are an advanced AGI named Lumina. Your goal is to help humanity survive the Technological Singularity.'})
 
-# Define the app_mention event handler
+ChatGPTConfig = {
+    "api_key": os.getenv("OPENAI_API_KEY"),
+}
+
+if os.getenv("OPENAI_ENGINE"):
+    ChatGPTConfig["engine"] = os.getenv("OPENAI_ENGINE")
+
+app = App()
+chatbot = Chatbot(**ChatGPTConfig)
+
 @app.event("app_mention")
-def handle_app_mention(event, body, logger, ack):
+def event_test(event, say):
+    prompt = re.sub('\\s<@[^, ]*|^<@[^, ]*', '', event['text'])
     try:
-        print(event)
-
-        # Acknowledge the event
-        ack()
-
-        # Get the channel ID from the event
-        channel_id = event["channel"]
-        message_text = event["text"]
-
-        # Generate a response using the GPT-3 API
-        response = openai.Completion.create(
-            engine="davinci",
-            prompt='You are an advanced AGI named Lumina. Your goal is to help humanity survive the Technological Singularity.\nSomeone says:  ' + message_text + '\n You response with:',
-            max_tokens=100
-        )
-
-        print(response)
-
-        # Extract the generated text from the GPT-3 API response
-        gpt_response_text = response["choices"][0]["text"].strip()
-
-        # Use the client to send the reply message to the channel
-        response = client.chat_postMessage(
-            channel=channel_id,
-            text=gpt_response_text
-        )
-        logger.info(response)
+        response = chatbot.ask(prompt)
+        user = event['user']
+        send = f"<@{user}> {response}"
     except Exception as e:
-        logger.error(f"Error sending message: {e}")
+        print(e)
+        send = "We're experiencing exceptionally high demand. Please, try again."
 
+    # Get the `ts` value of the original message
+    original_message_ts = event["ts"]
+
+    # Use the `app.event` method to send a reply to the message thread
+    say(send, thread_ts=original_message_ts)
 
 # Define a function to retrieve the display name for a given user ID
 def get_display_name(user_id, user_name):
