@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  luminai:
+    build:
+      context: .
+    image: luminai
+    container_name: luminai
+    env_file:
+      - ./.env
