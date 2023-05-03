@@ -1,0 +1,30 @@
+display_information:
+  name: Luminai
+  description: ChatGPT bot
+  background_color: "#001a66"
+features:
+  bot_user:
+    display_name: Luminai
+    always_online: false
+  slash_commands:
+    - command: /reset
+      description: Reset conversation
+      should_escape: false
+oauth_config:
+  scopes:
+    bot:
+      - app_mentions:read
+      - chat:write
+      - commands
+      - users:read
+      - users:write
+      - im:write
+settings:
+  event_subscriptions:
+    bot_events:
+      - app_mention
+  interactivity:
+    is_enabled: true
+  org_deploy_enabled: false
+  socket_mode_enabled: true
+  token_rotation_enabled: false
