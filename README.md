@@ -2,7 +2,7 @@
 
 Luminai is a ChatGPT slack bot
 
-Go to https://api.slack.com/apps and create a new app using the `manifest.yml` file. Copy the Bot User OAuth Token and the app level token.
+Go to https://api.slack.com/apps and create a new app using the `manifest.yml` file. Copy the Bot User OAuth Token and the app level token. Install the app into your slack workspace.
 
 Go to https://platform.openai.com/account/api-keys and create a new OpenAI API key.
 
