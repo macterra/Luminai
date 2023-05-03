@@ -15,4 +15,4 @@ Start the bot with:
 docker compose up -d
 ```
 
-Since it uses websockets it doesn't need any exposted ports and can run anywhere with internet access.
+Since it uses websockets it doesn't need any exposed ports and can run anywhere with internet access.
