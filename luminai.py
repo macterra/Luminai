@@ -1,16 +1,11 @@
 import os
 import re
 
-from slack_sdk import WebClient
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from revChatGPT.V3 import Chatbot
 
-# Initialize the WebClient with the bot token
-client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
-
-# Initialize the Slack app with the bot token
-app = App(client=client)
+app = App()
 
 ChatGPTConfig = {
     "api_key": os.getenv("OPENAI_API_KEY")
@@ -22,7 +17,6 @@ if os.getenv("OPENAI_ENGINE"):
 if os.getenv("OPENAI_SYSTEM_PROMPT"):
     ChatGPTConfig["system_prompt"] = os.getenv("OPENAI_SYSTEM_PROMPT")
 
-app = App()
 chatbot = Chatbot(**ChatGPTConfig)
 
 @app.event("app_mention")
