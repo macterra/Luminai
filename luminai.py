@@ -23,7 +23,7 @@ chatbot = Chatbot(**ChatGPTConfig)
 def event_test(event, say):
     prompt = re.sub('\\s<@[^, ]*|^<@[^, ]*', '', event['text'])
     try:
-        response = chatbot.ask(prompt)
+        response = chatbot.ask(prompt, "user", event['channel'])
         user = event['user']
         send = f"<@{user}> {response}"
     except Exception as e:
