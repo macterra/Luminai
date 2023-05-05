@@ -39,8 +39,14 @@ def event_test(event, say):
 @app.command("/reset")
 def handle_some_command(ack, body, say):
     ack()
-    chatbot.reset(body['channel_id'])
-    say(f"My memory was reset by <@{body['user_id']}>")
+    system_prompt = re.sub('\\s<@[^, ]*|^<@[^, ]*', '', body['text'])
+    if system_prompt:
+        print("system_prompt", system_prompt)
+        chatbot.reset(body['channel_id'], system_prompt)
+        say(f"My programming was reset by <@{body['user_id']}> to '{system_prompt}'")
+    else:
+        chatbot.reset(body['channel_id'])
+        say(f"My memory was reset by <@{body['user_id']}>")
 
 # Start the app using Socket Mode with the app token
 if __name__ == "__main__":
