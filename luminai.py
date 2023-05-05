@@ -36,6 +36,12 @@ def event_test(event, say):
     # Use the `app.event` method to send a reply to the message thread
     say(send, thread_ts=original_message_ts)
 
+@app.command("/reset")
+def handle_some_command(ack, body, say):
+    ack()
+    chatbot.reset(body['channel_id'])
+    say(f"My memory was reset by <@{body['user_id']}>")
+
 # Start the app using Socket Mode with the app token
 if __name__ == "__main__":
     handler = SocketModeHandler(app, os.environ["SLACK_APP_TOKEN"])
