@@ -30,18 +30,25 @@ def event_test(event, say):
         print(e)
         send = "We're experiencing exceptionally high demand. Please, try again."
 
-    # Get the `ts` value of the original message
-    original_message_ts = event["ts"]
-
     # Use the `app.event` method to send a reply to the message thread
+    original_message_ts = event["ts"]
     say(send, thread_ts=original_message_ts)
+
+@app.event("message")
+def handle_message_events(event, say):
+    prompt = re.sub('\\s<@[^, ]*|^<@[^, ]*', '', event['text'])
+    try:
+        send = chatbot.ask(prompt, "user", event['channel'])
+    except Exception as e:
+        print(e)
+        send = "We're experiencing exceptionally high demand. Please, try again."
+    say(send)
 
 @app.command("/reset")
 def handle_some_command(ack, body, say):
     ack()
     system_prompt = re.sub('\\s<@[^, ]*|^<@[^, ]*', '', body['text'])
     if system_prompt:
-        print("system_prompt", system_prompt)
         chatbot.reset(body['channel_id'], system_prompt)
         say(f"My programming was reset by <@{body['user_id']}> to '{system_prompt}'")
     else:
