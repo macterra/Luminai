@@ -16,3 +16,9 @@ docker compose up -d
 ```
 
 Since it uses websockets it doesn't need any exposed ports and can run anywhere with internet access.
+
+## Commands
+
+`/reset` will reset Luminai's memory to the original system prompt
+
+`/reset [prompt]` will reprogram Luminai to use a new system prompt.
