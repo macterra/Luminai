@@ -20,7 +20,7 @@ if os.getenv("OPENAI_SYSTEM_PROMPT"):
 chatbot = Chatbot(**ChatGPTConfig)
 
 @app.event("app_mention")
-def event_test(event, say):
+def handle_mention(event, say):
     prompt = re.sub('\\s<@[^, ]*|^<@[^, ]*', '', event['text'])
     try:
         response = chatbot.ask(prompt, "user", event['channel'])
