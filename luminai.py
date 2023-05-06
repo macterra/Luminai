@@ -21,7 +21,7 @@ chatbot = Chatbot(**ChatGPTConfig)
 
 @app.event("app_mention")
 def handle_mention(event, say):
-    prompt = re.sub('\\s<@[^, ]*|^<@[^, ]*', '', event['text'])
+    prompt = event['text']
     try:
         response = chatbot.ask(prompt, "user", event['channel'])
         user = event['user']
@@ -36,7 +36,7 @@ def handle_mention(event, say):
 
 @app.event("message")
 def handle_message_events(event, say):
-    prompt = re.sub('\\s<@[^, ]*|^<@[^, ]*', '', event['text'])
+    prompt = event['text']
     try:
         send = chatbot.ask(prompt, "user", event['channel'])
     except Exception as e:
@@ -47,10 +47,10 @@ def handle_message_events(event, say):
 @app.command("/reset")
 def handle_some_command(ack, body, say):
     ack()
-    system_prompt = re.sub('\\s<@[^, ]*|^<@[^, ]*', '', body['text'])
-    if system_prompt:
-        chatbot.reset(body['channel_id'], system_prompt)
-        say(f"My programming was reset by <@{body['user_id']}> to '{system_prompt}'")
+    prompt = body['text']
+    if prompt:
+        chatbot.reset(body['channel_id'], prompt)
+        say(f"My programming was reset by <@{body['user_id']}> to '{prompt}'")
     else:
         chatbot.reset(body['channel_id'])
         say(f"My memory was reset by <@{body['user_id']}>")
