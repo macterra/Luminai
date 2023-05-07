@@ -7,6 +7,13 @@ from revChatGPT.V3 import Chatbot
 
 app = App()
 
+auth_test_response = app.client.auth_test()
+bot_user_id = auth_test_response["user_id"]
+user_info = app.client.users_info(user=bot_user_id)
+bot_name = user_info['user']['real_name']
+print(bot_user_id)
+print(bot_name)
+
 ChatGPTConfig = {
     "api_key": os.getenv("OPENAI_API_KEY")
 }
