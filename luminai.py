@@ -19,11 +19,15 @@ ChatGPTConfig = {
     "api_key": os.getenv("OPENAI_API_KEY")
 }
 
-if os.getenv("OPENAI_ENGINE"):
-    ChatGPTConfig["engine"] = os.getenv("OPENAI_ENGINE")
+engine = os.getenv("OPENAI_ENGINE")
+if engine:
+    ChatGPTConfig["engine"] = engine
+    print(f"using openai engine {engine}")
 
-if os.getenv("OPENAI_SYSTEM_PROMPT"):
-    ChatGPTConfig["system_prompt"] = os.getenv("OPENAI_SYSTEM_PROMPT")
+system_prompt = os.getenv("OPENAI_SYSTEM_PROMPT")
+if system_prompt:
+    ChatGPTConfig["system_prompt"] = system_prompt
+    print(f"using system prompt [{system_prompt}]")
 
 chatbot = Chatbot(**ChatGPTConfig)
 
@@ -38,8 +42,9 @@ def handle_message_events(event, say):
             try:
                 prompt = prompt.replace(bot_mention, bot_name)
                 user = f"<@{event['user']}>"
+                prompt = f"{user} said: {prompt}"
                 print(prompt)
-                response = chatbot.ask(prompt, user, event['channel'])
+                response = chatbot.ask(prompt, "user", event['channel'])
                 send = f"{user} {response}"
             except Exception as e:
                 print(e)
@@ -52,8 +57,9 @@ def handle_message_events(event, say):
         else:
             try:
                 user = f"<@{event['user']}>"
+                prompt = f"{user} said: {prompt}"
                 print(prompt)
-                send = chatbot.ask(prompt, user, event['channel'])
+                send = chatbot.ask(prompt, "user", event['channel'])
             except Exception as e:
                 print(e)
                 send = "We're experiencing exceptionally high demand. Please, try again."
