@@ -1,6 +1,4 @@
 import os
-import re
-
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from revChatGPT.V3 import Chatbot
@@ -44,8 +42,7 @@ def handle_message_events(event, say):
                 user = f"<@{event['user']}>"
                 prompt = f"{user} said: {prompt}"
                 print(prompt)
-                response = chatbot.ask(prompt, "user", event['channel'])
-                send = f"{user} {response}"
+                send = chatbot.ask(prompt, "user", event['channel'])
             except Exception as e:
                 print(e)
                 send = "We're experiencing exceptionally high demand. Please, try again."
