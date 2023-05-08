@@ -9,6 +9,7 @@ app = App()
 
 auth_test_response = app.client.auth_test()
 bot_user_id = auth_test_response["user_id"]
+bot_mention = f"<@{bot_user_id}>"
 user_info = app.client.users_info(user=bot_user_id)
 bot_name = user_info['user']['real_name']
 print(bot_user_id)
@@ -26,21 +27,6 @@ if os.getenv("OPENAI_SYSTEM_PROMPT"):
 
 chatbot = Chatbot(**ChatGPTConfig)
 
-# @app.event("app_mention")
-# def handle_mention(event, say):
-#     prompt = event['text']
-#     try:
-#         response = chatbot.ask(prompt, "user", event['channel'])
-#         user = event['user']
-#         send = f"<@{user}> {response}"
-#     except Exception as e:
-#         print(e)
-#         send = "We're experiencing exceptionally high demand. Please, try again."
-
-#     # Use the `app.event` method to send a reply to the message thread
-#     original_message_ts = event["ts"]
-#     say(send, thread_ts=original_message_ts)
-
 @app.event("message")
 def handle_message_events(event, say):
     print(event)
@@ -48,13 +34,13 @@ def handle_message_events(event, say):
     channel_type = event['channel_type']
 
     if channel_type == 'channel':
-        if f"<@{bot_user_id}>" in event["text"]:
+        if bot_mention in event["text"]:
             try:
-                prompt = prompt.replace(f"<@{bot_user_id}>", bot_name)
+                prompt = prompt.replace(bot_mention, bot_name)
+                user = f"<@{event['user']}>"
                 print(prompt)
-                response = chatbot.ask(prompt, "user", event['channel'])
-                user = event['user']
-                send = f"<@{user}> {response}"
+                response = chatbot.ask(prompt, user, event['channel'])
+                send = f"{user} {response}"
             except Exception as e:
                 print(e)
                 send = "We're experiencing exceptionally high demand. Please, try again."
@@ -62,15 +48,12 @@ def handle_message_events(event, say):
             # Use the `app.event` method to send a reply to the message thread
             original_message_ts = event["ts"]
             say(send, thread_ts=original_message_ts)
+            print(send)
         else:
             try:
-                user = event['user']
-                user_info = app.client.users_info(user=user)
-                print(user_info)
-                user_name = user_info['user']['profile']['display_name']
-                prompt = f"<@{user}> (aka {user_name}) said, '{prompt}'"
+                user = f"<@{event['user']}>"
                 print(prompt)
-                send = chatbot.ask(prompt, "user", event['channel'])
+                send = chatbot.ask(prompt, user, event['channel'])
             except Exception as e:
                 print(e)
                 send = "We're experiencing exceptionally high demand. Please, try again."
