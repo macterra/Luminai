@@ -25,10 +25,11 @@ oauth_config:
       - users:read
       - users:write
       - im:history
+      - channels:history
 settings:
   event_subscriptions:
     bot_events:
-      - app_mention
+      - message.channels
       - message.im
   interactivity:
     is_enabled: true
