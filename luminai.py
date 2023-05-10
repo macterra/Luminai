@@ -1,4 +1,5 @@
 import os
+import logging
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from revChatGPT.V3 import Chatbot
@@ -10,8 +11,10 @@ bot_user_id = auth_test_response["user_id"]
 bot_mention = f"<@{bot_user_id}>"
 user_info = app.client.users_info(user=bot_user_id)
 bot_name = user_info['user']['real_name']
-print(bot_user_id)
-print(bot_name)
+
+logging.basicConfig(level=logging.INFO)
+print(f"bot user id: {bot_user_id}")
+print(f"bot name: {bot_name}")
 
 ChatGPTConfig = {
     "api_key": os.getenv("OPENAI_API_KEY")
@@ -30,8 +33,8 @@ if system_prompt:
 chatbot = Chatbot(**ChatGPTConfig)
 
 @app.event("message")
-def handle_message_events(event, say):
-    print(event)
+def handle_message_events(event, say, logger):
+    logger.info(event)
     prompt = event['text']
     channel_type = event['channel_type']
 
@@ -41,45 +44,50 @@ def handle_message_events(event, say):
                 prompt = prompt.replace(bot_mention, bot_name)
                 user = f"<@{event['user']}>"
                 prompt = f"{user} said: {prompt}"
-                print(prompt)
+                logger.info(prompt)
                 send = chatbot.ask(prompt, "user", event['channel'])
             except Exception as e:
-                print(e)
+                logger.debug(e)
                 send = "We're experiencing exceptionally high demand. Please, try again."
 
             # Use the `app.event` method to send a reply to the message thread
             original_message_ts = event["ts"]
             say(send, thread_ts=original_message_ts)
-            print(send)
+            logger.info(send)
         else:
             try:
                 user = f"<@{event['user']}>"
                 prompt = f"{user} said: {prompt}"
-                print(prompt)
+                logger.info(prompt)
                 send = chatbot.ask(prompt, "user", event['channel'])
             except Exception as e:
-                print(e)
+                logger.debug(e)
                 send = "We're experiencing exceptionally high demand. Please, try again."
-            print(send)
+            logger.info(f"hidden response: {send}")
 
     if channel_type == 'im':
         try:
+            logger.info(prompt)
             send = chatbot.ask(prompt, "user", event['channel'])
         except Exception as e:
-            print(e)
+            logger.debug(e)
             send = "We're experiencing exceptionally high demand. Please, try again."
         say(send)
+        logger.info(send)
 
 @app.command("/reset")
-def handle_reset_command(ack, body, say):
+def handle_reset_command(ack, body, say, logger):
     ack()
+    logger.info(body)
     prompt = body['text']
     if prompt:
         chatbot.reset(body['channel_id'], prompt)
-        say(f"My programming was reset by <@{body['user_id']}> to '{prompt}'")
+        send = f"My programming was reset by <@{body['user_id']}> to '{prompt}'"
     else:
         chatbot.reset(body['channel_id'])
-        say(f"My memory was reset by <@{body['user_id']}>")
+        send = f"My memory was reset by <@{body['user_id']}>"
+    say(send)
+    logger.info(send)
 
 # Start the app using Socket Mode with the app token
 if __name__ == "__main__":
