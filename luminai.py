@@ -27,6 +27,7 @@ if engine:
 
 system_prompt = os.getenv("OPENAI_SYSTEM_PROMPT")
 if system_prompt:
+    system_prompt += "\nAll user names start with '<@' and end with '>'."
     ChatGPTConfig["system_prompt"] = system_prompt
     print(f"using system prompt [{system_prompt}]")
 
