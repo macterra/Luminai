@@ -46,42 +46,40 @@ async def on_message(message):
     if message.author == bot.user:
         return
 
-    prompt = message.content
+    err = "We're experiencing exceptionally high demand. Please, try again."
     user = f"<@{message.author.id}>"
+    prompt = f"{user} said: {message.content}"
 
     if isinstance(message.channel, discord.DMChannel):
         try:
-            prompt = f"{user} said: {prompt}"
             logging.info(prompt)
             send = chatbot.ask(prompt, "user", str(message.channel.id))
         except Exception as e:
             logging.debug(e)
-            send = "We're experiencing exceptionally high demand. Please, try again."
+            send = err
         await message.channel.send(send)
-        logging.info(send)
     else:
         if bot_mention in prompt:
             prompt = prompt.replace(bot_mention, bot_name)
 
             try:
-                prompt = f"{user} said: {prompt}"
                 logging.info(prompt)
                 send = chatbot.ask(prompt, "user", str(message.channel.id))
             except Exception as e:
                 logging.debug(e)
-                send = "We're experiencing exceptionally high demand. Please, try again."
+                send = err
 
             await message.channel.send(send)
-            logging.info(send)
         else:
             try:
-                prompt = f"{user} said: {prompt}"
                 logging.info(prompt)
                 send = chatbot.ask(prompt, "user", str(message.channel.id))
+                send = f"(hidden response): {send}"
             except Exception as e:
                 logging.debug(e)
-                send = "We're experiencing exceptionally high demand. Please, try again."
-            logging.info(f"hidden response: {send}")
+                send = err
+
+    logging.info(send)
 
 @bot.command(name='reset')
 async def reset(ctx, *, prompt: str = None):
