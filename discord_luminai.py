@@ -18,7 +18,7 @@ if engine:
 
 system_prompt = os.getenv("OPENAI_SYSTEM_PROMPT")
 if system_prompt:
-    system_prompt += "\nAll user names start with '@' and end with '#[discriminator]'."
+    system_prompt += "\nAll user names start with '<@' and end with '>'."
     ChatGPTConfig["system_prompt"] = system_prompt
     print(f"using system prompt [{system_prompt}]")
 
@@ -27,14 +27,24 @@ chatbot = Chatbot(**ChatGPTConfig)
 logging.basicConfig(level=logging.INFO)
 
 @bot.event
+async def on_ready():
+    print(f"We have logged in as {bot.user}")
+
+    # bot.user.id will contain the bot's ID.
+    print(f"My Bot's ID is: {bot.user.id}")
+
+@bot.event
 async def on_message(message):
     if message.author == bot.user:
         return
 
     prompt = message.content
 
+    print(message)
+
     try:
-        user = f"@{message.author.name}#{message.author.discriminator}"
+        #user = f"@{message.author.name}#{message.author.discriminator}"
+        user = f"<@{message.author.id}>"
         prompt = f"{user} said: {prompt}"
         logging.info(prompt)
         send = chatbot.ask(prompt, "user", str(message.channel.id))
