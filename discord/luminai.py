@@ -1,3 +1,5 @@
+# Discord version of Luminai GPT chat bot
+
 import os
 import logging
 import discord
@@ -28,21 +30,16 @@ if system_prompt:
 
 chatbot = Chatbot(**ChatGPTConfig)
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(levelname)-8s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
 
 @bot.event
 async def on_ready():
     global bot_name
     global bot_mention
-
-    print(f"We have logged in as {bot.user}")
-
-    # bot.user.id will contain the bot's ID.
-    print(f"My Bot's ID is: {bot.user.id}")
-
     bot_name = bot.user.display_name
     bot_mention = f"<@{bot.user.id}>"
-    print(bot.user)
 
 @bot.event
 async def on_message(message):
@@ -50,11 +47,11 @@ async def on_message(message):
         return
 
     prompt = message.content
+    user = f"<@{message.author.id}>"
 
     if isinstance(message.channel, discord.DMChannel):
-        print("private message", message.content)
-
         try:
+            prompt = f"{user} said: {prompt}"
             logging.info(prompt)
             send = chatbot.ask(prompt, "user", str(message.channel.id))
         except Exception as e:
@@ -67,7 +64,6 @@ async def on_message(message):
             prompt = prompt.replace(bot_mention, bot_name)
 
             try:
-                user = f"<@{message.author.id}>"
                 prompt = f"{user} said: {prompt}"
                 logging.info(prompt)
                 send = chatbot.ask(prompt, "user", str(message.channel.id))
@@ -79,7 +75,6 @@ async def on_message(message):
             logging.info(send)
         else:
             try:
-                user = f"<@{message.author.id}>"
                 prompt = f"{user} said: {prompt}"
                 logging.info(prompt)
                 send = chatbot.ask(prompt, "user", str(message.channel.id))
