@@ -4,8 +4,12 @@ import discord
 from discord.ext import commands
 from revChatGPT.V3 import Chatbot
 
-intents = discord.Intents.default()  # Create an instance of the Intents class
-bot = commands.Bot(command_prefix="!", intents=intents)  # Pass the Intents object to the Bot
+intents = discord.Intents.default()
+intents.messages = True
+intents.message_content = True
+bot = commands.Bot(command_prefix="!", intents=intents)
+bot_name = ""
+bot_mention = ""
 
 ChatGPTConfig = {
     "api_key": os.getenv("OPENAI_API_KEY")
@@ -28,10 +32,17 @@ logging.basicConfig(level=logging.INFO)
 
 @bot.event
 async def on_ready():
+    global bot_name
+    global bot_mention
+
     print(f"We have logged in as {bot.user}")
 
     # bot.user.id will contain the bot's ID.
     print(f"My Bot's ID is: {bot.user.id}")
+
+    bot_name = bot.user.display_name
+    bot_mention = f"<@{bot.user.id}>"
+    print(bot.user)
 
 @bot.event
 async def on_message(message):
@@ -40,20 +51,42 @@ async def on_message(message):
 
     prompt = message.content
 
-    print(message)
+    if isinstance(message.channel, discord.DMChannel):
+        print("private message", message.content)
 
-    try:
-        #user = f"@{message.author.name}#{message.author.discriminator}"
-        user = f"<@{message.author.id}>"
-        prompt = f"{user} said: {prompt}"
-        logging.info(prompt)
-        send = chatbot.ask(prompt, "user", str(message.channel.id))
-    except Exception as e:
-        logging.debug(e)
-        send = "We're experiencing exceptionally high demand. Please, try again."
+        try:
+            logging.info(prompt)
+            send = chatbot.ask(prompt, "user", str(message.channel.id))
+        except Exception as e:
+            logging.debug(e)
+            send = "We're experiencing exceptionally high demand. Please, try again."
+        await message.channel.send(send)
+        logging.info(send)
+    else:
+        if bot_mention in prompt:
+            prompt = prompt.replace(bot_mention, bot_name)
 
-    await message.channel.send(send)
-    logging.info(send)
+            try:
+                user = f"<@{message.author.id}>"
+                prompt = f"{user} said: {prompt}"
+                logging.info(prompt)
+                send = chatbot.ask(prompt, "user", str(message.channel.id))
+            except Exception as e:
+                logging.debug(e)
+                send = "We're experiencing exceptionally high demand. Please, try again."
+
+            await message.channel.send(send)
+            logging.info(send)
+        else:
+            try:
+                user = f"<@{message.author.id}>"
+                prompt = f"{user} said: {prompt}"
+                logging.info(prompt)
+                send = chatbot.ask(prompt, "user", str(message.channel.id))
+            except Exception as e:
+                logging.debug(e)
+                send = "We're experiencing exceptionally high demand. Please, try again."
+            logging.info(f"hidden response: {send}")
 
 @bot.command(name='reset')
 async def reset(ctx, *, prompt: str = None):
