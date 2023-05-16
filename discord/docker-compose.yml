@@ -1,0 +1,10 @@
+version: "3.9"
+services:
+  luminai-discord:
+    build:
+      context: .
+    image: luminai-discord
+    container_name: luminai-discord
+    restart: always
+    env_file:
+      - ./.env
