@@ -12,9 +12,12 @@ bot_mention = f"<@{bot_user_id}>"
 user_info = app.client.users_info(user=bot_user_id)
 bot_name = user_info['user']['real_name']
 
-logging.basicConfig(level=logging.INFO)
-print(f"bot user id: {bot_user_id}")
-print(f"bot name: {bot_name}")
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s %(levelname)-8s %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
+
+logging.info(f"bot user id: {bot_user_id}")
+logging.info(f"bot name: {bot_name}")
 
 ChatGPTConfig = {
     "api_key": os.getenv("OPENAI_API_KEY")
@@ -23,63 +26,64 @@ ChatGPTConfig = {
 engine = os.getenv("OPENAI_ENGINE")
 if engine:
     ChatGPTConfig["engine"] = engine
-    print(f"using openai engine {engine}")
+    logging.info(f"using openai engine {engine}")
 
 system_prompt = os.getenv("OPENAI_SYSTEM_PROMPT")
 if system_prompt:
     system_prompt += "\nAll user names start with '<@' and end with '>'."
     ChatGPTConfig["system_prompt"] = system_prompt
-    print(f"using system prompt [{system_prompt}]")
+    logging.info(f"using system prompt [{system_prompt}]")
 
 chatbot = Chatbot(**ChatGPTConfig)
 
 @app.event("message")
-def handle_message_events(event, say, logger):
-    logger.info(event)
-    prompt = event['text']
+def handle_message_events(event, say):
+    logging.info(event)
+
     channel_type = event['channel_type']
+    user = f"<@{event['user']}>"
+    prompt = f"{user} said: {event['text']}"
+    err = "We're experiencing exceptionally high demand. Please, try again."
+
+    if channel_type == 'im':
+        try:
+            logging.info(prompt)
+            send = chatbot.ask(prompt, "user", event['channel'])
+        except Exception as e:
+            logging.debug(e)
+            send = err
+        say(send)
 
     if channel_type == 'channel':
         if bot_mention in event["text"]:
             try:
                 prompt = prompt.replace(bot_mention, bot_name)
-                user = f"<@{event['user']}>"
-                prompt = f"{user} said: {prompt}"
-                logger.info(prompt)
+                logging.info(prompt)
                 send = chatbot.ask(prompt, "user", event['channel'])
             except Exception as e:
-                logger.debug(e)
-                send = "We're experiencing exceptionally high demand. Please, try again."
+                logging.debug(e)
+                send = err
 
             # Use the `app.event` method to send a reply to the message thread
             original_message_ts = event["ts"]
             say(send, thread_ts=original_message_ts)
-            logger.info(send)
         else:
             try:
                 user = f"<@{event['user']}>"
                 prompt = f"{user} said: {prompt}"
-                logger.info(prompt)
+                logging.info(prompt)
                 send = chatbot.ask(prompt, "user", event['channel'])
+                send = f"(hidden response): {send}"
             except Exception as e:
-                logger.debug(e)
-                send = "We're experiencing exceptionally high demand. Please, try again."
-            logger.info(f"hidden response: {send}")
+                logging.debug(e)
+                send = err
 
-    if channel_type == 'im':
-        try:
-            logger.info(prompt)
-            send = chatbot.ask(prompt, "user", event['channel'])
-        except Exception as e:
-            logger.debug(e)
-            send = "We're experiencing exceptionally high demand. Please, try again."
-        say(send)
-        logger.info(send)
+    logging.info(send)
 
 @app.command("/reset")
-def handle_reset_command(ack, body, say, logger):
+def handle_reset_command(ack, body, say):
     ack()
-    logger.info(body)
+    logging.info(body)
     prompt = body['text']
     if prompt:
         chatbot.reset(body['channel_id'], prompt)
@@ -88,7 +92,7 @@ def handle_reset_command(ack, body, say, logger):
         chatbot.reset(body['channel_id'])
         send = f"My memory was reset by <@{body['user_id']}>"
     say(send)
-    logger.info(send)
+    logging.info(send)
 
 # Start the app using Socket Mode with the app token
 if __name__ == "__main__":
