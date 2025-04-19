@@ -86,7 +86,6 @@ async def on_message(message):
         logging.info(prompt)
         send = ask_openai(prompt)
         send = f"(hidden response): {send}"
-        await message.channel.send(send)
 
     logging.info(send)
 
